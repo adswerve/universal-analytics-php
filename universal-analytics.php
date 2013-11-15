@@ -68,15 +68,37 @@ class Tracker {
 
   public function __construct($account, $client_id = null, $user_id = null){
     $this->account = $account;
-    if(is_null($client_id)) $client_id = self::generateUUID4();
+    
+    if(!is_null($client_id) && constant('ANALYTICS_HASH_IDS'))
+      $client_id = self::hash_uuid($client_id);
+    elseif(is_null($client_id))
+      $client_id = self::generateUUID4();
+
     $this->state = array(
       'v' => self::VERSION,
       'tid' => $account,
-      'cid' => constant('ANALYTICS_HASH_IDS') ? md5($client_id) : $client_id
+      'cid' => $client_id
     );
-    if(!is_null($user_id))
-      $this->state[ 'uid' ] = constant('ANALYTICS_HASH_IDS') ? md5($user_id) : $user_id;
+    
+    if(!is_null($user_id)){
+      if(constant('ANALYTICS_HASH_IDS'))
+        $user_id = self::hash_uuid($user_id);
+      $this->state[ 'uid' ] = $user_id;
+    }
   }
+
+  /* Return an MD5 checksum spaced in UUD4-format */
+  public static function hash_uuid($value){ 
+    $checksum = md5($value);
+    return sprintf('%8s-%4s-%4s-%4s-%12s', 
+      substr($checksum, 0, 8), 
+      substr($checksum, 8, 4), 
+      substr($checksum, 12, 4),
+      substr($checksum, 16, 4),
+      substr($checksum, 20, 12)
+    );
+  }
+
 
   public function setUserAgent($ua){
     if(is_string($ua)){
