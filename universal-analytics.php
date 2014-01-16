@@ -21,22 +21,28 @@ class UniversalBeacon {
     $this->user_agent = $user_agent;
   }
 
-  public function send($data_update = null){
+  public function send($data_update = null, $debug = false){
     $data = array_merge($this->data, (array)$data_update);
-    print_r($data);
-    self::curl($this->endpoint, $data, $this->user_agent);
+    self::curl($this->endpoint, $data, $this->user_agent, $debug);
   }
 
   // Issue an HTTP request via CURL
-  public static function & curl($url, $data, $ua = null){
+  public static function & curl($url, $data, $ua = null, $debug = true){
     $h = curl_init($url);
+    $payload = self::combine($data);
     curl_setopt($h, CURLOPT_AUTOREFERER, true);
     curl_setopt($h, CURLOPT_NOPROGRESS, true);
-    curl_setopt($h, CURLOPT_VERBOSE, true);
-    if(is_string($ua))
+    if($debug){
+      print_r($data);
+      print_r($payload);
+      print "\n"; # readability
+    }
+    if(is_string($ua)){
       curl_setopt($h, CURLOPT_USERAGENT, $ua);
+    }
+    curl_setopt($h, CURLOPT_VERBOSE, $debug);
     curl_setopt($h, CURLOPT_POST, count($data));
-    curl_setopt($h, CURLOPT_POSTFIELDS, self::combine($data));
+    curl_setopt($h, CURLOPT_POSTFIELDS, $payload);
     curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($h, CURLOPT_HEADER, 0);
     $v = curl_exec($h);
@@ -52,7 +58,7 @@ class UniversalBeacon {
       array_fill(0, $c, '%s%s%s'), // format string 
       array_keys($params), // keys
       array_fill(0, $c, $pair),  // pairing (=)
-      array_values($params) // values
+      array_map('urlencode', array_values($params)) // values
     )) : '';
   }
 
@@ -65,6 +71,7 @@ class Tracker {
   private $account = null;
   private $state = null;
   private $user_agent = null;
+  public $debug = false;
 
   public function __construct($account, $client_id = null, $user_id = null){
     $this->account = $account;
@@ -113,8 +120,9 @@ class Tracker {
         ? $this->user_agent 
         : self::USER_AGENT
       );
+
     $beacon = new UniversalBeacon($this->hitdata($hit_type, $attribs), $agent);
-    return $beacon->send(); 
+    return $beacon->send(null, $this->debug); 
   }
 
   public function set($name, $value){
