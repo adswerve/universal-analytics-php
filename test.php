@@ -3,11 +3,10 @@
 define('ANALYTICS_HASH_IDS', true);
 require('universal-analytics.php');
 
-$t = new Tracker('UA-XXXXX-Y', 'abc', null);
+$t = new Tracker(/* tracking id */ 'UA-XXXXX-Y', /* client id */ 'abc', /* user id */ null, /* debug */ true);
 
 $t->set('dimension1', 'tested');
 
-$t->debug = true;
 
 if(true) $t->send('event', array(
   'eventAction' => 'testing',

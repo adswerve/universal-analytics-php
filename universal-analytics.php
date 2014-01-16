@@ -21,9 +21,9 @@ class UniversalBeacon {
     $this->user_agent = $user_agent;
   }
 
-  public function send($data_update = null, $debug = false){
+  public function handle($data_update = null, $debug = false){
     $data = array_merge($this->data, (array)$data_update);
-    self::curl($this->endpoint, $data, $this->user_agent, $debug);
+    return self::curl($this->endpoint, $data, $this->user_agent, $debug);
   }
 
   // Issue an HTTP request via CURL
@@ -45,9 +45,10 @@ class UniversalBeacon {
     curl_setopt($h, CURLOPT_POSTFIELDS, $payload);
     curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($h, CURLOPT_HEADER, 0);
-    $v = curl_exec($h);
-    curl_close($h);
-    return $v;
+    return $h;
+    // $v = curl_exec($h);
+    // curl_close($h);
+    // return $v;
   }
 
   // A simpler parameter joining method
@@ -65,17 +66,71 @@ class UniversalBeacon {
 }
 
 
+class UniversalBeaconPool {
+  const MAXIMUM_REQUEST_QUEUE = 10;
+  private $user_agent = 'user_agent';
+  private $debug = false;
+  private $handler = null;
+  private $request_queue = array();
+
+  public function __construct($user_agent = null, $debug = false){
+    $this->handler = curl_multi_init();
+    
+    // This option isn't supported before PHP 5.5
+    // curl_multi_setopt($this->handler, CURLMOPT_PIPELINING, 1);
+
+    if(is_string($user_agent)){
+      $this->user_agent = $user_agent;
+    }
+    if($debug){
+      $this->debug = true;
+    }
+  }
+
+
+  public function addRequest($data, $user_agent = null){
+    $user_agent = (is_string($user_agent) ? $user_agent : $this->user_agent);
+    $request = new UniversalBeacon($data, $user_agent);
+    $handle = $request->handle(null, $this->debug);
+    array_push($this->request_queue, $handle);
+    curl_multi_add_handle($this->handler, $handle);
+    if(count($this->request_queue) >= self::MAXIMUM_REQUEST_QUEUE){
+      self::process($this->handler, $this->request_queue);
+    }
+  }
+
+  public static function process(& $handler, & $request_queue){
+    do {
+      curl_multi_exec($handler, $running);
+    } while($running > 0);
+    while($handle = array_pop($request_queue)){
+      curl_multi_remove_handle($handler, $handle);
+    }
+  }
+
+
+  public function __destruct(){
+    self::process($this->handler, $this->request_queue);
+    curl_multi_close($this->handler);
+  }
+
+}
+
+
 class Tracker {
   const VERSION = 1;
   const USER_AGENT = 'Analytics Pros - Universal Analytics (PHP)';
   private $account = null;
   private $state = null;
   private $user_agent = null;
+  private $pool = null;
   public $debug = false;
 
-  public function __construct($account, $client_id = null, $user_id = null){
+  public function __construct($account, $client_id = null, $user_id = null, $debug = false){
     $this->account = $account;
-    
+    $this->debug = (bool) $debug;
+    $this->pool = new UniversalBeaconPool(self::USER_AGENT, $this->debug);
+
     if(!is_null($client_id) && constant('ANALYTICS_HASH_IDS'))
       $client_id = self::hash_uuid($client_id);
     elseif(is_null($client_id))
@@ -121,8 +176,7 @@ class Tracker {
         : self::USER_AGENT
       );
 
-    $beacon = new UniversalBeacon($this->hitdata($hit_type, $attribs), $agent);
-    return $beacon->send(null, $this->debug); 
+    return $this->pool->addRequest($this->hitdata($hit_type, $attribs), $agent);
   }
 
   public function set($name, $value){
