@@ -170,11 +170,12 @@ class Tracker {
 
   public function send($hit_type, $attribs = null, $ua = null){
     $agent = (is_string($ua) 
-      ? $ua 
-      : is_string($this->user_agent) 
-        ? $this->user_agent 
-        : self::USER_AGENT
-      );
+      ? $ua
+      : (is_string($this->user_agent) 
+            ? $this->user_agent 
+            : self::USER_AGENT
+        )
+    );
 
     return $this->pool->addRequest($this->hitdata($hit_type, $attribs), $agent);
   }
