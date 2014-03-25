@@ -12,7 +12,7 @@ Email: `opensource@analyticspros.com`
 
 For the most accurate data in your reports, Analytics Pros recommends establishing a distinct ID for each of your users, and integrating that ID on your front-end web tracking, as well as back-end tracking calls. This provides for a consistent, correct representation of user engagement, without skewing overall visit metrics (and others).
 
-A simple example:
+A few simple examples:
 
 ```php
 <?php
@@ -21,13 +21,36 @@ require('universal-analytics.php');
 
 $t = new Tracker(/* web property id */ 'UA-XXXXX-Y', /* client id */ 'abc', /* user id */ null);
 
+// Set a custom dimension
 $t->set('dimension1', 'pizza');
 
+// Send an event
 $t->send(/* hit type */ 'event', /* hit properties */ array(
   'eventCategory' => 'test events',
   'eventAction' => 'testing',
   'eventLabel' => '(test)'
 ));
+
+
+// Send a transaction
+$tracker->send('transaction', array(
+  'transactionId' => $transaction_id,
+  'transactionAffiliation' => $affiliate,
+  'transactionRevenue' => $total_revenue, // not including tax or shipping
+  'transactionShipping' => $total_shipping,
+  'transactionTax' => $total_tax
+));
+
+// Send an item record related to the preceding transaction
+$tracker->send('item', array(
+  'transactionId' => $transaction_id,
+  'itemName' => $item_name,
+  'itemCode' => $item_sku,
+  'itemCategory' => $item_variation,
+  'itemPrice' => $item_unit_price,
+  'itemQuantity' => 1
+));
+
 
 ?>
 ```
