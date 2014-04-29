@@ -1,6 +1,6 @@
 # Universal Analytics for PHP 
 
-This library provides a PHP interface for the Universal Analytics Measurement Protocol, with an interface modeled (loosely) after Google's `analytics.js`.
+This library provides a PHP interface to Google Analytics, supporting the Universal Analytics Measurement Protocol, with an interface modeled (loosely) after Google's `analytics.js`.
 Future releases will support an interface similar to `ga.js`, for legacy implementations which already integrate our [legacy library](https://github.com/analytics-pros/google-analytics-php-legacy).
 
 **NOTE** that this project is still _beta_; some features of the Measurement Protocol aren't fully represented, and new features will be added in the (hopefully) nearer future. Please feel free to file issues for feature requests.
