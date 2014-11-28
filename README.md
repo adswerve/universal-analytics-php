@@ -55,6 +55,8 @@ $tracker->send('item', array(
 ?>
 ```
 
+All messages will be flushed when the tracker object is destroyed.
+
 Currently all tracking hits (using `send`) require an array (dictionary) of properties related to the hit type.
 
 
