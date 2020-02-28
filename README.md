@@ -6,7 +6,7 @@ Future releases will support an interface similar to `ga.js`, for legacy impleme
 **NOTE** that this project is still _beta_; some features of the Measurement Protocol aren't fully represented, and new features will be added in the (hopefully) nearer future. Please feel free to file issues for feature requests.
 
 # Contact
-Email: `opensource@analyticspros.com`
+Email: `opensource@adswerve.com`
 
 # Usage
 
@@ -65,7 +65,7 @@ Currently all tracking hits (using `send`) require an array (dictionary) of prop
 * Throttling 
 * GA Classic interface
 
-We're particularly interested in the scope of throttling for back-end tracking for users who have a defined use-case for it. Please [contact us](mailto:opensource@analyticspros.com) if you have such a use-case.
+We're particularly interested in the scope of throttling for back-end tracking for users who have a defined use-case for it. Please [contact us](mailto:opensource@adswerve.com) if you have such a use-case.
 
 
 # License
